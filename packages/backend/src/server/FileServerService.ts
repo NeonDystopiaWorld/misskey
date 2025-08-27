@@ -142,12 +142,13 @@ export class FileServerService {
 					if (isMimeImage(file.mime, 'sharp-convertible-image-with-bmp')) {
 						reply.header('Cache-Control', 'max-age=31536000, immutable');
 
-						const url = new URL(`${this.config.mediaProxy}/static.webp`);
-						url.searchParams.set('url', file.url);
-						url.searchParams.set('static', '1');
+						const searchParams = new URLSearchParams();
+						searchParams.set('url', file.url);
+						searchParams.set('static', '1');
+						const url = `/proxy/static.webp?${searchParams.toString()}`;
 
 						file.cleanup();
-						return await reply.redirect(url.toString(), 301);
+						return await reply.redirect(url, 301);
 					} else if (file.mime.startsWith('video/')) {
 						const externalThumbnail = this.videoProcessingService.getExternalVideoThumbnailUrl(file.url);
 						if (externalThumbnail) {
@@ -163,11 +164,12 @@ export class FileServerService {
 					if (['image/svg+xml'].includes(file.mime)) {
 						reply.header('Cache-Control', 'max-age=31536000, immutable');
 
-						const url = new URL(`${this.config.mediaProxy}/svg.webp`);
-						url.searchParams.set('url', file.url);
+						const searchParams = new URLSearchParams();
+						searchParams.set('url', file.url);
+						const url = `/proxy/svg.webp?${searchParams.toString()}`;
 
 						file.cleanup();
-						return await reply.redirect(url.toString(), 301);
+						return await reply.redirect(url, 301);
 					}
 				}
 
@@ -307,14 +309,17 @@ export class FileServerService {
 
 			reply.header('Cache-Control', 'public, max-age=259200'); // 3 days
 
-			const url = new URL(`${this.config.mediaProxy}/${request.params.url || ''}`);
+			const searchParams = new URLSearchParams();
+			let url = `/proxy/${request.params.url || ''}`;
 
 			for (const [key, value] of Object.entries(request.query)) {
-				url.searchParams.append(key, value);
+				searchParams.append(key, value);
 			}
 
+			url += `?${searchParams.toString()}`;
+
 			return await reply.redirect(
-				url.toString(),
+				url,
 				301,
 			);
 		}

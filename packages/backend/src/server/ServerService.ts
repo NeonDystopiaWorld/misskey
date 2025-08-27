@@ -188,22 +188,24 @@ export class ServerService implements OnApplicationShutdown {
 				}
 			}
 
-			let url: URL;
+			const searchParams = new URLSearchParams();
+			let url = '';
 			if ('badge' in request.query) {
-				url = new URL(`${this.config.mediaProxy}/emoji.png`);
+				url = '/proxy/emoji.png';
 				// || emoji.originalUrl してるのは後方互換性のため（publicUrlはstringなので??はだめ）
-				url.searchParams.set('url', emoji.publicUrl || emoji.originalUrl);
-				url.searchParams.set('badge', '1');
+				searchParams.set('url', emoji.publicUrl || emoji.originalUrl);
+				searchParams.set('badge', '1');
 			} else {
-				url = new URL(`${this.config.mediaProxy}/emoji.webp`);
+				url = '/proxy/emoji.webp';
 				// || emoji.originalUrl してるのは後方互換性のため（publicUrlはstringなので??はだめ）
-				url.searchParams.set('url', emoji.publicUrl || emoji.originalUrl);
-				url.searchParams.set('emoji', '1');
-				if ('static' in request.query) url.searchParams.set('static', '1');
+				searchParams.set('url', emoji.publicUrl || emoji.originalUrl);
+				searchParams.set('emoji', '1');
+				if ('static' in request.query) searchParams.set('static', '1');
 			}
+			url += `?${searchParams.toString()}`;
 
 			return await reply.redirect(
-				url.toString(),
+				url,
 				301,
 			);
 		});
