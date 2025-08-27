@@ -508,6 +508,10 @@ export const ROUTE_DEF = [{
 		name: 'system-webhook',
 		component: page(() => import('@/pages/admin/system-webhook.vue')),
 	}, {
+		path: '/custom-actions',
+		name: 'custom-actions',
+		component: page(() => import('@/pages/admin/custom-actions.vue')),
+	}, {
 		path: '/',
 		component: page(() => import('@/pages/_empty_.vue')),
 	}],
