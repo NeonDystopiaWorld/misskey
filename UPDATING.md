@@ -30,5 +30,5 @@ If there is a merge conflict, you need to resolve it manually. After resolving t
 git add .
 git commit -m "Merge upstream changes"
 ```
-
-If the conflicts are just in imports, you can copy our imports, accept incoming changes and then add our imports back.
+## Common issues
+ - Import Conflicts: If the conflicts are just in imports, you can copy our imports, accept incoming changes and then add our imports back.
