@@ -115,6 +115,7 @@ type Source = {
 			enableQueryParamLogging?: boolean,
 		}
 	}
+	suspendNotRespondingInstancesAfterDays?: number;
 };
 
 export type Config = {
@@ -212,6 +213,7 @@ export type Config = {
 	perUserNotificationsMaxCount: number;
 	deactivateAntennaThreshold: number;
 	pidFile: string;
+	suspendNotRespondingInstancesAfterDays: number;
 };
 
 export type FulltextSearchProvider = 'sqlLike' | 'sqlPgroonga' | 'meilisearch';
@@ -340,6 +342,7 @@ export function loadConfig(): Config {
 		deactivateAntennaThreshold: config.deactivateAntennaThreshold ?? (1000 * 60 * 60 * 24 * 7),
 		pidFile: config.pidFile,
 		logging: config.logging,
+		suspendNotRespondingInstancesAfterDays: config.suspendNotRespondingInstancesAfterDays ?? 7,
 	};
 }
 

@@ -402,3 +402,7 @@ proxyBypassHosts:
 #     # Disable query truncation. If set to true, the full text of the query will be output to the log.
 #     # default: false
 #     disableQueryTruncation: false
+
+# Automatically suspend instances that have not responded for a certain number of days.
+# The default value is 7 days.
+# suspendNotRespondingInstancesAfterDays: 7

@@ -20,6 +20,7 @@ import FederationChart from '@/core/chart/charts/federation.js';
 import { StatusError } from '@/misc/status-error.js';
 import { UtilityService } from '@/core/UtilityService.js';
 import { bindThis } from '@/decorators.js';
+import type { Config } from '@/config.js';
 import { QueueLoggerService } from '../QueueLoggerService.js';
 import type { DeliverJobData } from '../types.js';
 
@@ -30,6 +31,8 @@ export class DeliverProcessorService {
 	private latest: string | null;
 
 	constructor(
+		@Inject(DI.config)
+		private config: Config,
 		@Inject(DI.meta)
 		private meta: MiMeta,
 
@@ -119,8 +122,8 @@ export class DeliverProcessorService {
 						notRespondingSince: new Date(),
 					});
 				} else if (i.notRespondingSince) {
-					// 1週間以上不通ならサスペンド
-					if (i.suspensionState === 'none' && i.notRespondingSince.getTime() <= Date.now() - 1000 * 60 * 60 * 24 * 7) {
+					// 設定された日数以上不通ならサスペンド
+					if (i.suspensionState === 'none' && i.notRespondingSince.getTime() <= Date.now() - 1000 * 60 * 60 * 24 * this.config.suspendNotRespondingInstancesAfterDays) {
 						this.federatedInstanceService.update(i.id, {
 							suspensionState: 'autoSuspendedForNotResponding',
 						});
