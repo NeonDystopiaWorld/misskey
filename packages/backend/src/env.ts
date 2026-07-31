@@ -14,6 +14,7 @@ const envOption = {
 	domainRewrite: false,
 	// Disable CAPTCHA for specific environments (i2p)
 	disableCaptcha: false,
+	enableCrossOriginIsolation: false,
 };
 
 for (const key of Object.keys(envOption) as (keyof typeof envOption)[]) {
