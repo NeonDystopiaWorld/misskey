@@ -41,7 +41,7 @@ describe('Drive', () => {
 
 		const file = await catcher;
 
-		assert.strictEqual(res.status, 204);
+		assert.strictEqual(res.status, 200);
 		assert.strictEqual(file.name, '192.jpg');
 		assert.strictEqual(file.type, 'image/jpeg');
 	});
