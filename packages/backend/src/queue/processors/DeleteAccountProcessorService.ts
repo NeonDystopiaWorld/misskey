@@ -6,7 +6,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { MoreThan } from 'typeorm';
 import { DI } from '@/di-symbols.js';
-import type { DriveFilesRepository, NotesRepository, PagesRepository, UserProfilesRepository, UsersRepository } from '@/models/_.js';
+import type { DriveFilesRepository, NotesRepository, PagesRepository, UserProfilesRepository, UsersRepository, ChatMessagesRepository } from '@/models/_.js';
 import type Logger from '@/logger.js';
 import { DriveService } from '@/core/DriveService.js';
 import type { MiDriveFile } from '@/models/DriveFile.js';
@@ -18,6 +18,8 @@ import { PageService } from '@/core/PageService.js';
 import { QueueLoggerService } from '../QueueLoggerService.js';
 import type * as Bull from 'bullmq';
 import type { DbUserDeleteJobData } from '../types.js';
+import * as Redis from 'ioredis';
+import { GlobalEventService } from '@/core/GlobalEventService.js';
 
 @Injectable()
 export class DeleteAccountProcessorService {
@@ -39,11 +41,18 @@ export class DeleteAccountProcessorService {
 		@Inject(DI.pagesRepository)
 		private pagesRepository: PagesRepository,
 
+		@Inject(DI.chatMessagesRepository)
+		private chatMessagesRepository: ChatMessagesRepository,
+
+		@Inject(DI.redis)
+		private redisClient: Redis.Redis,
+
 		private driveService: DriveService,
 		private pageService: PageService,
 		private emailService: EmailService,
 		private queueLoggerService: QueueLoggerService,
 		private searchService: SearchService,
+		private globalEventService: GlobalEventService,
 	) {
 		this.logger = this.queueLoggerService.logger.createSubLogger('delete-account');
 	}
@@ -148,9 +157,35 @@ export class DeleteAccountProcessorService {
 			}
 		}
 
+			// Before physical deletion, clear chat-related unread markers for other users
+		// Find all chat messages involving this user to identify participants to notify
+		const relatedMessages = await this.chatMessagesRepository.createQueryBuilder('m')
+			.select(['m.fromUserId', 'm.toUserId'])
+			.where('m.fromUserId = :id OR m.toUserId = :id', { id: user.id })
+			.getRawMany();
+
+		const otherUserIds = new Set<string>();
+		for (const row of relatedMessages) {
+			const from = (row.m_fromUserId ?? row.fromUserId ?? row.from_user_id) as string | undefined;
+			const to = (row.m_toUserId ?? row.toUserId ?? row.to_user_id) as string | undefined;
+			if (from && from !== user.id) otherUserIds.add(from);
+			if (to && to !== user.id) otherUserIds.add(to);
+		}
+
+		// Remove Redis markers and emit read events so clients clear unread indicators immediately
+		for (const otherId of otherUserIds) {
+			const pipeline = this.redisClient.pipeline();
+			pipeline.srem(`newChatMessagesExists:${otherId}`, `user:${user.id}`);
+			pipeline.del(`newUserChatMessageExists:${otherId}:${user.id}`);
+			await pipeline.exec();
+
+			// Notify client streams to refresh (idempotent)
+			this.globalEventService.publishMainStream(otherId, 'readAllNotifications');
+		}
+
 		// soft指定されている場合は物理削除しない
 		if (job.data.soft) {
-		// nop
+			// nop
 		} else {
 			await this.usersRepository.delete(job.data.user.id);
 		}
