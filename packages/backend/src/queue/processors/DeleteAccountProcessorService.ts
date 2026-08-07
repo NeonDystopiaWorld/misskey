@@ -5,8 +5,9 @@
 
 import { Inject, Injectable } from '@nestjs/common';
 import { MoreThan } from 'typeorm';
+import * as Redis from 'ioredis';
 import { DI } from '@/di-symbols.js';
-import type { DriveFilesRepository, NotesRepository, PagesRepository, UserProfilesRepository, UsersRepository } from '@/models/_.js';
+import type { ChatMessagesRepository, DriveFilesRepository, NotesRepository, PagesRepository, UserProfilesRepository, UsersRepository } from '@/models/_.js';
 import type Logger from '@/logger.js';
 import { DriveService } from '@/core/DriveService.js';
 import type { MiDriveFile } from '@/models/DriveFile.js';
@@ -24,8 +25,14 @@ export class DeleteAccountProcessorService {
 	private logger: Logger;
 
 	constructor(
+		@Inject(DI.redis)
+		private redisClient: Redis.Redis,
+
 		@Inject(DI.usersRepository)
 		private usersRepository: UsersRepository,
+
+		@Inject(DI.chatMessagesRepository)
+		private chatMessagesRepository: ChatMessagesRepository,
 
 		@Inject(DI.userProfilesRepository)
 		private userProfilesRepository: UserProfilesRepository,
@@ -55,6 +62,25 @@ export class DeleteAccountProcessorService {
 		const user = await this.usersRepository.findOneBy({ id: job.data.user.id });
 		if (user == null) {
 			return;
+		}
+
+		{
+			// Cleanup unread messages from this user to other users
+			const chatThreads = await this.chatMessagesRepository.createQueryBuilder('message')
+				.select('message.toUserId', 'toUserId')
+				.where('message.fromUserId = :userId', { userId: user.id })
+				.andWhere('message.toUserId IS NOT NULL')
+				.distinct(true)
+				.getRawMany<{ toUserId: string }>();
+
+			if (chatThreads.length > 0) {
+				const redisPipeline = this.redisClient.pipeline();
+				for (const chatThread of chatThreads) {
+					redisPipeline.del('newUserChatMessageExists:' + chatThread.toUserId + ':' + user.id);
+					redisPipeline.srem('newChatMessagesExists:' + chatThread.toUserId, 'user:' + user.id);
+				}
+				await redisPipeline.exec();
+			}
 		}
 
 		{ // Delete notes
