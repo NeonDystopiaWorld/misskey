@@ -33,6 +33,7 @@ export * as 'admin/avatar-decorations/list' from './endpoints/admin/avatar-decor
 export * as 'admin/avatar-decorations/update' from './endpoints/admin/avatar-decorations/update.js';
 export * as 'admin/captcha/current' from './endpoints/admin/captcha/current.js';
 export * as 'admin/captcha/save' from './endpoints/admin/captcha/save.js';
+export * as 'admin/cleanup-chat-unreads' from './endpoints/admin/cleanup-chat-unreads.js';
 export * as 'admin/delete-account' from './endpoints/admin/delete-account.js';
 export * as 'admin/delete-all-files-of-a-user' from './endpoints/admin/delete-all-files-of-a-user.js';
 export * as 'admin/drive/clean-remote-files' from './endpoints/admin/drive/clean-remote-files.js';

@@ -40,6 +40,7 @@ export type AdminAvatarDecorationsListResponse = operations['admin___avatar-deco
 export type AdminAvatarDecorationsUpdateRequest = operations['admin___avatar-decorations___update']['requestBody']['content']['application/json'];
 export type AdminCaptchaCurrentResponse = operations['admin___captcha___current']['responses']['200']['content']['application/json'];
 export type AdminCaptchaSaveRequest = operations['admin___captcha___save']['requestBody']['content']['application/json'];
+export type AdminCleanupChatUnreadsResponse = operations['admin___cleanup-chat-unreads']['responses']['200']['content']['application/json'];
 export type AdminDeleteAccountRequest = operations['admin___delete-account']['requestBody']['content']['application/json'];
 export type AdminDeleteAllFilesOfAUserRequest = operations['admin___delete-all-files-of-a-user']['requestBody']['content']['application/json'];
 export type AdminDriveFilesRequest = operations['admin___drive___files']['requestBody']['content']['application/json'];

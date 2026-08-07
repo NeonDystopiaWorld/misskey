@@ -451,6 +451,10 @@ export const ROUTE_DEF = [{
 		name: 'database',
 		component: page(() => import('@/pages/admin/database.vue')),
 	}, {
+		path: '/custom-actions',
+		name: 'custom-actions',
+		component: page(() => import('@/pages/admin/custom-actions.vue')),
+	}, {
 		path: '/abuses',
 		name: 'abuses',
 		component: page(() => import('@/pages/admin/abuses.vue')),

@@ -237,6 +237,11 @@ const menuDef = computed<SuperMenuDef[]>(() => [{
 		text: i18n.ts.database,
 		to: '/admin/database',
 		active: currentPage.value?.route.name === 'database',
+		}, {
+		icon: 'ti ti-message',
+		text: 'Custom actions',
+		to: '/admin/custom-actions',
+		active: currentPage.value?.route.name === 'custom-actions',
 	}],
 }]);
 
