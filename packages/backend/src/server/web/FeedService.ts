@@ -15,8 +15,9 @@ import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.js';
 import { bindThis } from '@/decorators.js';
 import { IdService } from '@/core/IdService.js';
-import { MfmService } from '@/core/MfmService.js';
 import { removeDomain } from '@/util.js';
+import { MfmService } from '@/core/MfmService.js';
+import { shouldHideNoteByTime } from '@/misc/should-hide-note-by-time.js';
 
 @Injectable()
 export class FeedService {
@@ -57,7 +58,11 @@ export class FeedService {
 			},
 			order: { id: -1 },
 			take: 20,
-		});
+		}).then(notes => notes.filter(note => {
+			const createdAt = this.idService.parse(note.id).date;
+			return !shouldHideNoteByTime(user.makeNotesHiddenBefore, createdAt)
+				&& !shouldHideNoteByTime(user.makeNotesFollowersOnlyBefore, createdAt);
+		}));
 
 		const feed = new Feed({
 			id: author.link,
